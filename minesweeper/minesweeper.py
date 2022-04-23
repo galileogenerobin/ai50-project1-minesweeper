@@ -203,11 +203,9 @@ class MinesweeperAI():
         """
         # 1) mark the cell as a move that has been made
         self.moves_made.add(cell)
-        # print("add_knowledge Step 1 done")
 
         # 2) mark the cell as safe, both in self.safes and in the knowledge base
         self.mark_safe(cell)
-        # print("add_knowledge Step 2 done")
 
         # 3) add a new sentence to the AI's knowledge base based on the value of `cell` and `count`
         # First we identify the neighboring cells
@@ -225,7 +223,6 @@ class MinesweeperAI():
                         neighbor_cells.add((i, j))
         # Add the new sentence to the knowledge base
         self.knowledge.append(Sentence(neighbor_cells, count))
-        # print("add_knowledge Step 3 done, added sentence {} = {}".format(neighbor_cells, count))
 
         # 4) mark any additional cells as safe or as mines if it can be concluded based on the AI's knowledge base
         # 5) add any new sentences to the AI's knowledge base if they can be inferred from existing knowledge
@@ -236,11 +233,9 @@ class MinesweeperAI():
     def update_knowledge(self):
         """Additional function to update knowledge
         """
-        # print("current knowledge: {}".format([f"{sentence.cells} = {sentence.count}" for sentence in self.knowledge]))
         # We will create a flag to identify if the knowledge base changed during this update, in which case we will call this function again
         knowledge_changed = False
         
-        # print("add_knowledge Step 4 looping")
         # Now we loop through the updated knowledge base and mark cells
         # 4) mark any additional cells as safe or as mines if it can be concluded based on the AI's knowledge base
         for sentence in self.knowledge:
@@ -253,7 +248,6 @@ class MinesweeperAI():
                     self.mark_safe(cell)
                     sentence.mark_safe(cell)
                 knowledge_changed = True
-                # print("safes updated")
             if sentence.known_mines() is not None:
                 known_mines = copy.deepcopy(sentence.known_mines())
                 # Mark mine each cell which is known to be a mine (i.e. if sentence.count == len(sentence.cells))
@@ -261,8 +255,6 @@ class MinesweeperAI():
                     self.mark_mine(cell)
                     sentence.mark_mine(cell)
                 knowledge_changed = True
-                # print("mines updated")
-        # print("add_knowledge Step 4 done")
 
         # Before we do Step 5, let's clean up our knowledge base by removing empty sets
         # Create a copy of the current knowledge base so we can iterate through it
@@ -275,13 +267,11 @@ class MinesweeperAI():
 
         # Update the copy of the current knowledge base
         knowledge_copy = copy.deepcopy(self.knowledge)
-        # print("add_knowledge Step 5 looping")
         for sentence1 in knowledge_copy:
             # We check for subsets with other sentences
             for sentence2 in knowledge_copy:
                 # 5) add any new sentences to the AI's knowledge base if they can be inferred from existing knowledge
                 if not sentence1 == sentence2:
-                    # print("checking sentence: {} vs {}".format(sentence1, sentence2))
                     # Check if one sentence's cells is a subset of the other
                     # Note, we are not checking sentence2 < sentence1, since that will be processed later in the loop
                     if sentence1.cells < sentence2.cells:
@@ -290,10 +280,6 @@ class MinesweeperAI():
                         if new_sentence not in self.knowledge:
                             self.knowledge.append(new_sentence)
                             knowledge_changed = True
-                            # print("knowledge added; {} = {}".format(sentence2.cells - sentence1.cells, sentence2.count - sentence1.count))
-        # print("add_knowledge Step 5 done")
-        # print()
-        # print()
 
         # Check if the knowledge base updated
         if knowledge_changed:
