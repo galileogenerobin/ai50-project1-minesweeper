@@ -120,7 +120,6 @@ class Sentence():
         if self.count == 0 and len(self.cells) != 0:
             return self.cells
         return None
-        
         # raise NotImplementedError
 
     def mark_mine(self, cell):
@@ -232,15 +231,17 @@ class MinesweeperAI():
 
     def update_knowledge(self):
         """Additional function to update knowledge
+           Here we will review the existing knowledge base and update cells as safe or mines, where possible
+           (i.e. steps 4 and 5 of our algorithm)
         """
-        # We will create a flag to identify if the knowledge base changed during this update, in which case we will call this function again
+        # We will create a flag to identify if the knowledge base changed during this update, 
+        # In which case we will call this function again so we can update_knowledge based on the new knowledge base
         knowledge_changed = False
         
-        # Now we loop through the updated knowledge base and mark cells
         # 4) mark any additional cells as safe or as mines if it can be concluded based on the AI's knowledge base
         for sentence in self.knowledge:
             # Check if the sentence resolves to known safes or known mines, in which case we make updates
-            # In each, we create copies of the known_safes and known_mines so we can iterate through them
+            # In each scenario, we create copies of the known_safes and known_mines so we can iterate through them
             if sentence.known_safes() is not None:
                 known_safes = copy.deepcopy(sentence.known_safes())
                 # Mark safe each cell which is known to be safe (i.e. if sentence.count == 0)
@@ -260,7 +261,7 @@ class MinesweeperAI():
         # Create a copy of the current knowledge base so we can iterate through it
         knowledge_copy = copy.deepcopy(self.knowledge)
         for sentence in knowledge_copy:
-            # If cells are an empty set (i.e. as a result of all its cells having previously been marked safe), let's remove the sentence
+            # If cells are an empty set (i.e. as a result of all its cells having previously been marked safe due to step 4 above), let's remove the sentence
             if len(sentence.cells) == 0:
                 self.knowledge.remove(sentence)
                 break
@@ -297,10 +298,10 @@ class MinesweeperAI():
         # Loop through all cells
         for i in range(self.width):
             for j in range(self.height):
-                # The cell must not be an existing move
+                # The cell must not be an existing move, and must be in self.safes
                 if (i, j) not in self.moves_made and (i, j) in self.safes:
                     return (i, j)
-                    
+        # No safe cells
         return None
         # raise NotImplementedError
 
@@ -326,5 +327,4 @@ class MinesweeperAI():
             return random.choice(unknown_cells)
         # If no unknown cells
         return None
-
         # raise NotImplementedError
