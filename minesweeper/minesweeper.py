@@ -129,7 +129,7 @@ class Sentence():
         """
         # We will only update if the cell exists in the sentence
         if cell in self.cells:
-            # Remove from the set of cells and reduce count by 1
+            # Remove from the set of cells and reduce count by 1 (since we've definitively reduced the number of mines in the remaining cells)
             self.cells.remove(cell)
             self.count = self.count - 1
         # raise NotImplementedError
@@ -214,6 +214,7 @@ class MinesweeperAI():
             for j in range(max(0, cell[1] - 1), min(self.height, cell[1] + 2)):
                 # The neighbor cell cannot be the current cell
                 if not (i, j) == cell:
+                    # We will only add the cells that are not yet known (i.e. not in self.mines or self.safes)
                     if (i, j) in self.mines:
                         # If the neighbor cell is a known mine, we don't add it to the sentence and we should reduce the count of mines by 1
                         count = count - 1
@@ -230,7 +231,7 @@ class MinesweeperAI():
         # raise NotImplementedError
 
     def update_knowledge(self):
-        """Additional function to update knowledge
+        """Additional function we created to update knowledge
            Here we will review the existing knowledge base and update cells as safe or mines, where possible
            (i.e. steps 4 and 5 of our algorithm)
         """
@@ -247,21 +248,19 @@ class MinesweeperAI():
                 # Mark safe each cell which is known to be safe (i.e. if sentence.count == 0)
                 for cell in known_safes:
                     self.mark_safe(cell)
-                    sentence.mark_safe(cell)
                 knowledge_changed = True
             if sentence.known_mines() is not None:
                 known_mines = copy.deepcopy(sentence.known_mines())
                 # Mark mine each cell which is known to be a mine (i.e. if sentence.count == len(sentence.cells))
                 for cell in known_mines:
                     self.mark_mine(cell)
-                    sentence.mark_mine(cell)
                 knowledge_changed = True
 
         # Before we do Step 5, let's clean up our knowledge base by removing empty sets
         # Create a copy of the current knowledge base so we can iterate through it
         knowledge_copy = copy.deepcopy(self.knowledge)
         for sentence in knowledge_copy:
-            # If cells are an empty set (i.e. as a result of all its cells having previously been marked safe due to step 4 above), let's remove the sentence
+            # If cells is an empty set (i.e. as a result of all its cells having previously been marked safe due to step 4 above), let's remove the sentence
             if len(sentence.cells) == 0:
                 self.knowledge.remove(sentence)
                 break
@@ -274,15 +273,16 @@ class MinesweeperAI():
                 # 5) add any new sentences to the AI's knowledge base if they can be inferred from existing knowledge
                 if not sentence1 == sentence2:
                     # Check if one sentence's cells is a subset of the other
-                    # Note, we are not checking sentence2 < sentence1, since that will be processed later in the loop
+                    # Note, we are not checking sentence2 < sentence1, since that will also be processed later in the loop
                     if sentence1.cells < sentence2.cells:
                         # If so, add the inferred subset to the original knowledge base, only if the sentence does not exist yet
+                        # The latter condition will reduce repetition and prevent an unending loop
                         new_sentence = Sentence(sentence2.cells - sentence1.cells, sentence2.count - sentence1.count)
                         if new_sentence not in self.knowledge:
                             self.knowledge.append(new_sentence)
                             knowledge_changed = True
 
-        # Check if the knowledge base updated
+        # Check if the knowledge base updated, in which case we update knowledge again
         if knowledge_changed:
             self.update_knowledge()
 
@@ -312,7 +312,6 @@ class MinesweeperAI():
             1) have not already been chosen, and
             2) are not known to be mines
         """
-
         # List of unknown cells (i.e. not moves made and not known mines), from which we will choose randomly
         unknown_cells = []
         # Loop through all cells
